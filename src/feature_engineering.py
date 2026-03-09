@@ -5,6 +5,16 @@ def engineer_features(df: pd.DataFrame) -> pd.DataFrame:
     """Apply all feature engineering steps. Returns df with new columns added."""
     df = df.copy()
     
+    # --- Data Cleaning: Convert to numeric and drop NaNs from placeholders (e.g. 'ch0') ---
+    cols_to_convert = ['PRN', 'Carrier_Doppler_hz', 'Pseudorange_m', 'RX_time', 'TOW', 
+                       'Carrier_phase', 'EC', 'LC', 'PC', 'PIP', 'PQP', 'TCD', 'CN0']
+    for col in cols_to_convert:
+        if col in df.columns:
+            df[col] = pd.to_numeric(df[col], errors='coerce')
+    
+    # Drop rows where critical telemetry is missing (the 'ch0' placeholders)
+    df = df.dropna(subset=['PRN', 'Carrier_Doppler_hz', 'EC']).reset_index(drop=True)
+    
     # --- 4.1 Physics-Based Features ---
     # Correlator Symmetry Score
     # Real signals have EC ≈ LC (symmetric correlator outputs). Spoofed signals distort this.

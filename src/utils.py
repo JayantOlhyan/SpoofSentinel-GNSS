@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 
 # These are columns that should be EXCLUDED from model features
-NON_FEATURE_COLS = ['PRN', 'RX_time', 'TOW_at_current_symbol_s']
+NON_FEATURE_COLS = ['PRN', 'RX_time', 'TOW', 'time', 'channel']
 
 def get_feature_columns(df: pd.DataFrame, label_col: str = None) -> list:
     """Return list of feature column names (excludes label and non-feature cols)."""

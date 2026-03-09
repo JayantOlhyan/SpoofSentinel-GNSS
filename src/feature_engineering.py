@@ -26,7 +26,7 @@ def engineer_features(df: pd.DataFrame) -> pd.DataFrame:
     # Sort data by PRN and RX_time before computing these.
     df = df.sort_values(['PRN', 'RX_time']).reset_index(drop=True)
     
-    target_cols = ['Carrier_Doppler_hz', 'Pseudorange_m', 'CN0', 'Carrier_phase_cycles', 'TCD']
+    target_cols = ['Carrier_Doppler_hz', 'Pseudorange_m', 'CN0', 'Carrier_phase', 'TCD']
     
     for col in target_cols:
         group = df.groupby('PRN')[col]
@@ -37,12 +37,12 @@ def engineer_features(df: pd.DataFrame) -> pd.DataFrame:
 
     # --- 4.3 Phase Jump Detection ---
     # Sudden large jumps in carrier phase are a classic spoofing indicator
-    df['phase_jump'] = df.groupby('PRN')['Carrier_phase_cycles'].transform(lambda x: x.diff().abs().fillna(0))
+    df['phase_jump'] = df.groupby('PRN')['Carrier_phase'].transform(lambda x: x.diff().abs().fillna(0))
     df['phase_jump_flag'] = (df['phase_jump'] > df['phase_jump'].quantile(0.95)).astype(int)
 
     # --- 4.4 Timing Inconsistency Feature ---
     # Difference between receiver time and satellite transmit time
-    df['timing_residual'] = df['RX_time'] - df['TOW_at_current_symbol_s']
+    df['timing_residual'] = df['RX_time'] - df['TOW']
     df['timing_residual_abs'] = df['timing_residual'].abs()
 
     # --- 4.5 PRN Consistency Feature ---

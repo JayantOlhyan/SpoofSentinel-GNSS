@@ -69,9 +69,9 @@ def main(test_path, submission_path):
     
     final_preds = (final_probs_mapped >= threshold).astype(int)
     
-    # Save predictions in exact submission format
-    label_col = df_sub.columns[-1]  # Usually the last column
-    df_sub[label_col] = final_preds
+    # Save predictions in exact submission format: time, Spoofed, Confidence
+    df_sub['Spoofed'] = final_preds
+    df_sub['Confidence'] = final_probs_mapped
     
     os.makedirs('outputs', exist_ok=True)
     df_sub.to_csv('outputs/predictions.csv', index=False)

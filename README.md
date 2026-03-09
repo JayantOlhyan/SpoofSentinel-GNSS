@@ -1,11 +1,19 @@
 # README.md
 # 🛰️ SpoofSentinel-GNSS
 
-> AI-powered GNSS spoofing detection using a hybrid Temporal Transformer + XGBoost ensemble 
+> AI-powered GNSS spoofing detection using a hybrid Temporal Transformer + XGBoost ensemble
 > with physics-grounded feature engineering and SHAP explainability.
 > Built for the NyneOS Anti-Spoofing Hackathon @ IIT Delhi (Kaizen 2026)
 
 ---
+
+## 📊 Results
+| Metric | Value |
+|---|---|
+| Validation Weighted F1 | 0.9102 (CV) |
+| XGBoost alone F1 | 0.9102 (CV) |
+| Transformer alone F1 | [Training...] |
+| Ensemble F1 | [Pending...] |
 
 ## 📌 Problem Understanding
 GNSS spoofing involves broadcasting fake satellite signals to deceive a receiver about its location and time. This is dangerous for autonomous vehicles, drones, and critical infrastructure. SpoofSentinel detects these anomalies by looking for physical inconsistencies (e.g., correlator asymmetry) and temporal patterns.

@@ -56,30 +56,35 @@ def main(test_path, submission_path):
     # For full submission, we fill missing initial predictions for each PRN with XGBoost-only results.
     # Or more simply, fill missing values with 0/authentic if no history exists.
     
-    # Pre-fill final probabilities with XGBoost-only results (suitably adjusted)
-    # This ensures we have a prediction for every row in df_test.
+    # Mapping back
     final_probs_mapped = xgb_probs.copy() 
-    
-    # Map back the ensemble probabilities where we have them
     for i, idx in enumerate(test_dataset.indices):
-        # idx is the original index in df_test_eng
-        # Re-calc ensemble prob for those points
         meta_features = np.array([[xgb_probs[int(idx)], transformer_probs_raw[i]]])
         final_probs_mapped[int(idx)] = meta_model.predict_proba(meta_features)[:, 1]
     
-    final_preds = (final_probs_mapped >= threshold).astype(int)
+    # Add time back for aggregation
+    df_test_eng['Confidence'] = final_probs_mapped
     
-    # Save predictions in exact submission format: time, Spoofed, Confidence
-    df_sub['Spoofed'] = final_preds
-    df_sub['Confidence'] = final_probs_mapped
+    # Aggregate by 'time': If ANY satellite at a timestamp is spoofed, the receiver is likely spoofed.
+    # We take the MAX confidence for each time step.
+    print("Aggregating predictions by timestamp...")
+    time_results = df_test_eng.groupby('time')['Confidence'].max().reset_index()
+    
+    # Merge with submission format to ensure correct ordering and row count
+    df_sub = df_sub[['time']].merge(time_results, on='time', how='left').fillna(0)
+    
+    df_sub['Spoofed'] = (df_sub['Confidence'] >= threshold).astype(int)
+    
+    # Reorder columns to: time, Spoofed, Confidence
+    df_sub = df_sub[['time', 'Spoofed', 'Confidence']]
     
     os.makedirs('outputs', exist_ok=True)
     df_sub.to_csv('outputs/predictions.csv', index=False)
     
     print("✅ predictions.csv saved to outputs/")
     print(f"Total predictions: {len(df_sub)}")
-    print(f"Spoofed detected: {final_preds.sum()}")
-    print(f"Authentic detected: {(final_preds == 0).sum()}")
+    print(f"Spoofed detected: {df_sub['Spoofed'].sum()}")
+    print(f"Authentic detected: {(df_sub['Spoofed'] == 0).sum()}")
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
